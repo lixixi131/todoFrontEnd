@@ -4,7 +4,7 @@ import DeleteOutlined from "@material-ui/icons/DeleteOutlineOutlined";
 import { ListItem ,ListItemText , InputBase , Checkbox , ListItemSecondaryAction , IconButton } from '@material-ui/core';
 
 
-const Todo = ({item , items , setItems , key , deleteTodo}) =>{
+const Todo = ({item , items , setItems , key , deleteTodo , updateTodo}) =>{
 
     const [readOnly,setReadOnly] = useState(true);
 
@@ -28,15 +28,17 @@ const Todo = ({item , items , setItems , key , deleteTodo}) =>{
         thisItem.title = e.target.value;
         //console.log(e.target.value);
 
-        items.map((item , idx) =>{
+        // items.map((item , idx) =>{
 
-            if(item.id === id){
-                let copied = [...items];
-                copied[idx].title = e.target.value;
-                setItems(copied)
-            }
+        //     if(item.id === id){
+        //         let copied = [...items];
+        //         copied[idx].title = e.target.value;
+        //         setItems(copied)
+        //     }
 
-        })
+        // })
+
+        updateTodo(thisItem);
 
 
     }
@@ -44,16 +46,30 @@ const Todo = ({item , items , setItems , key , deleteTodo}) =>{
 
     const todoCheckedHandler = (id) =>{
         
-        items.map((item , idx) =>{
+        const thisItem = item;
+        thisItem.done = item.done?false:true;
+        updateTodo(thisItem);
 
-            if(item.id === id){
-                let copied = [...items];
-                copied[idx].done = item.done?false:true;
-                setItems(copied)
+        // items.map((item , idx) =>{
 
-            }
+        //     if(item.id === id){
+        //         let copied = [...items];
+        //         copied[idx].done = item.done?false:true;
+        //         setItems(copied)
 
-        })
+        //     }
+
+        // })
+
+
+    }
+
+    const checkboxEventHandler = (e) => {
+
+
+        setReadOnly(true);
+        updateTodo(item);
+
 
     }
 
@@ -64,6 +80,7 @@ const Todo = ({item , items , setItems , key , deleteTodo}) =>{
             <Checkbox
             checked = {item.done}
             onClick={() => todoCheckedHandler(item.id)}
+            onChange={checkboxEventHandler}
             />
             <ListItemText>
                 <InputBase
