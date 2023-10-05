@@ -82,8 +82,9 @@ const App = () => {
 
   const deleteCheckedTodo = () => {
     //console.log("deleteCheckedTodo pressed");
-    call("/todo/checked", "DELETE").then((response) => {
-      //setItems(response.data  );
+    call("/todo/checked", "DELETE" , currentPost).then((response) => {
+      //setItems(response.data);
+      //window.location.reload();
       componentDidMount();
     })
   }
@@ -168,7 +169,7 @@ const App = () => {
             margin: "10px"
           }}
             onClick={deleteCheckedTodo}
-          >다한 일 삭제</Button>
+          >선택 삭제</Button>
 
 
       </Container>
