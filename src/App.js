@@ -1,21 +1,41 @@
 import Todo from "./Todo";
 import { useState, useEffect } from "react";
-import { Paper, List, Container } from "@material-ui/core";
+import { Paper, List, Container, Button, Toolbar, Grid, Typography, AppBar } from "@material-ui/core";
 import AddTodo from "./AddTodo";
-import {call} from './service/ApiService';
+import { call, signout } from './service/ApiService';
+import Pagination from "react-js-pagination";
+import './App.css';
+
+
 const App = () => {
 
   const [items, setItems] = useState([''])
 
-  useEffect(() => {
-    //setItems([{ id: 1, title: "todo1", done: false }, { id: 2, title: "todo2", done: true }])
-    componentDidMount();
+  //페이징기능을 위한 변수
+  const [page, setPage] = useState(1) // 현재 페이지 번호
+  const [currentPost, setCurrentPost] = useState([]) // 게시판 목록에 보여줄 게시글
+  const postPerPage = 5 // 페이지 당 게시글 개수
+  const indexOfLastPost = page * postPerPage
+  const indexOfFirstPost = indexOfLastPost - postPerPage
 
+  const boardLength = items.length
+
+  const handlePageChange = (page) => {
+    setPage(page)
+  }
+
+
+  useEffect(() => {
+    componentDidMount();
   }, [])
 
-  useEffect(()=>{
-    //console.log("cur items : " , items);
-  },[items])
+  useEffect(() => {
+    setCurrentPost(items.slice(indexOfFirstPost, indexOfLastPost))
+    console.log(currentPost);
+  }, [items, page])
+
+
+
 
   const todoList = items.map((item, idx) => {
     //console.log(item);
@@ -36,22 +56,23 @@ const App = () => {
     // copiedItems.push(item);
     // setItems(copiedItems);
 
-    call("/todo","POST",item).then((response)=>{
-      //setItems(response.data);
-      componentDidMount();
-    }) 
+    call("/todo", "POST", item).then((response) => {
+      setItems(response.data);
+      //componentDidMount();
+    })
 
 
 
   }
 
-  const deleteTodo = (item) =>{
-    
+  const deleteTodo = (item) => {
+
     // let copiedItems = [...items];
     // copiedItems = copiedItems.filter(e => e.id !== item.id);
     // setItems(copiedItems);
 
-    call("/todo","DELETE",item).then((response)=>{
+    call("/todo", "DELETE", item).then((response) => {
+      console.log(response.data);
       //setItems(response.data);
 
       componentDidMount();
@@ -59,40 +80,116 @@ const App = () => {
 
   }
 
-  const updateTodo = (item) =>{
-    call("/todo","PUT",item).then((response)=>{
-      //setItems(response.data);
+  const deleteCheckedTodo = () => {
+    //console.log("deleteCheckedTodo pressed");
+    call("/todo/checked", "DELETE").then((response) => {
+      //setItems(response.data  );
       componentDidMount();
-
     })
   }
 
-  const componentDidMount = () =>{
-    call("/todo","GET",null).then((response)=>{
+  const checkAllTodo = () =>{
+    console.log("check all todo");
+    call("/todo/checked" , "PUT" , currentPost).then((response) =>{
       console.log(response);
       setItems(response.data);
     })
   }
 
+  const updateTodo = (item) => {
+    call("/todo", "PUT", item).then((response) => {
+      setItems(response.data);
+      //componentDidMount();
+
+    })
+  }
+
+  const componentDidMount = () => {
+    call("/todo", "GET", null).then((response) => {
+      //console.log(response);
+      //console.log(response);
+      setItems(response.data);
+    })
+
+
+
+
+
+  }
+
+
+
+
+
+
   return (
     <div className="App">
-      <Container maxWidth ="md">
-        <AddTodo add = {add}></AddTodo>
-        <Paper style={{margin:16}}>
+
+
+      <AppBar position="static">
+        <Toolbar>
+          <Grid justifyContent="space-between" container>
+            <Grid item>
+              <Typography variant="h6">오늘의 할 일</Typography>
+            </Grid>
+            <Grid item>
+              <Button color="inherit" onClick={signout}>logout</Button>
+            </Grid>
+          </Grid>
+        </Toolbar>
+      </AppBar>
+
+
+      <Container maxWidth="md">
+        <AddTodo add={add}></AddTodo>
+        <Paper style={{ margin: 16 }}>
           <List>
-            {items.map((item) => {
-              return (
-                <Todo item={item} items={items} setItems={setItems} deleteTodo = {deleteTodo} key = {item.id}  updateTodo = {updateTodo}/>
-              )
-            })}
+
+            {
+              currentPost.map((item) => {
+                return (
+                  <Todo item={item} items={items} setItems={setItems} deleteTodo={deleteTodo} key={item.id} updateTodo={updateTodo} />
+                )
+              })
+            }
+
           </List>
         </Paper>
+          <Button style={{
+            backgroundColor: "#3f51b5",
+            color: "white"
+          }}
+            onClick={checkAllTodo}
+          >모두 체크</Button>
+
+          <Button style={{
+            backgroundColor: "#3f51b5",
+            color: "white",
+            margin: "10px"
+          }}
+            onClick={deleteCheckedTodo}
+          >다한 일 삭제</Button>
+
+
       </Container>
 
+      {/* 페이징을 위해 추가한 부분 */}
+      <Pagination
+        activePage={page}
+        itemsCountPerPage={postPerPage}
+        totalItemsCount={items.length}
+        pageRangeDisplayed={5}
+        prevPageText={"<"}
+        nextPageText={">"}
+        onChange={handlePageChange}
+      />
 
+      {/* # <Pagination count={10} variant="outlined" /> */}
 
     </div>
   )
 }
+
+
 
 export default App;
